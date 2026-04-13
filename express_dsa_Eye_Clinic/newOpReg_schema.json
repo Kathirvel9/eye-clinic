@@ -1,0 +1,1 @@
+[{"name":"OPRefNo","type":"int identity","size":10},{"name":"UHId","type":"int","size":10},{"name":"PatientName","type":"varchar","size":250},{"name":"PatMobileNo","type":"varchar","size":10}]
