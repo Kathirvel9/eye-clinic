@@ -23,7 +23,19 @@ const normalizePayload = (body = {}) => ({
   ToBeSeen: normalizeSeenStatus(body.ToBeSeen ?? body.toBeSeen),
 });
 
-const buildQueueStatusCondition = (tab) => {
+const buildQueueStatusCondition = (tab, stage = "clinical") => {
+  if (stage === "refraction") {
+    if (tab === "alreadyseen") {
+      return "hr.OPRefNo IS NOT NULL";
+    }
+
+    if (tab === "all") {
+      return "1 = 1";
+    }
+
+    return "n.ToBeSeen IN ('N', 'Y') AND hr.OPRefNo IS NULL";
+  }
+
   if (tab === "alreadyseen") {
     return `
       n.ToBeSeen = 'Y'
@@ -133,8 +145,13 @@ exports.getByUHId = async (req, res) => {
 exports.getDoctorQueue = async (req, res) => {
   try {
     const tab = String(req.query.tab || "tobeseen").trim().toLowerCase();
+    const stage = String(req.query.stage || "clinical").trim().toLowerCase();
     const date = normalizeDate(req.query.date);
-    const statusCondition = buildQueueStatusCondition(tab);
+    const statusCondition = buildQueueStatusCondition(tab, stage);
+    const dateCondition =
+      stage === "refraction"
+        ? ""
+        : "AND CAST(COALESCE(n.RegDate, pd.RegDate, GETDATE()) AS date) = :selectedDate";
 
     const query = `
       WITH LatestPatientDetails AS (
@@ -174,7 +191,7 @@ exports.getDoctorQueue = async (req, res) => {
       LEFT JOIN HasRefraction hr ON hr.OPRefNo = n.OPRefNo
       LEFT JOIN HasClinicalExamination hc ON hc.OPRefNo = n.OPRefNo
       WHERE ${statusCondition}
-        AND CAST(COALESCE(n.RegDate, pd.RegDate, GETDATE()) AS date) = :selectedDate
+        ${dateCondition}
       ORDER BY n.OPRefNo DESC;
     `;
 
