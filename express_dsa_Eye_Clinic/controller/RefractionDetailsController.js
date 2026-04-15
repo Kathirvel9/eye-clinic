@@ -15,7 +15,7 @@ module.exports = {
       const result = await RefractionDetails.create(req.body);
       if (req.body?.OPRefNo) {
         await NewOpReg.update(
-          { ToBeSeen: "N", RegDate: new Date().toISOString().slice(0, 10) },
+          { ToBeSeen: "N" },
           { where: { OPRefNo: req.body.OPRefNo } }
         );
       }
@@ -64,7 +64,7 @@ module.exports = {
       await data.update(req.body);
       if (data.OPRefNo) {
         await NewOpReg.update(
-          { ToBeSeen: "N", RegDate: new Date().toISOString().slice(0, 10) },
+          { ToBeSeen: "N" },
           { where: { OPRefNo: data.OPRefNo } }
         );
       }

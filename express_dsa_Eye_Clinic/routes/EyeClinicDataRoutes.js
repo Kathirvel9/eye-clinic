@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const EyeClinicDataController = require("../controller/EyeClinicDataController");
+const EyeClinicDataController = require("../controller/EyeClinicDataControllerV2");
 
 router.post("/create", EyeClinicDataController.createEyeClinicData);
 router.get("/getall", EyeClinicDataController.getAllEyeClinicData);

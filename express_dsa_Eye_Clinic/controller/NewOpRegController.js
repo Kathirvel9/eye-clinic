@@ -148,10 +148,7 @@ exports.getDoctorQueue = async (req, res) => {
     const stage = String(req.query.stage || "clinical").trim().toLowerCase();
     const date = normalizeDate(req.query.date);
     const statusCondition = buildQueueStatusCondition(tab, stage);
-    const dateCondition =
-      stage === "refraction"
-        ? ""
-        : "AND CAST(COALESCE(n.RegDate, pd.RegDate, GETDATE()) AS date) = :selectedDate";
+    const dateCondition = "AND CAST(COALESCE(n.RegDate, pd.RegDate, GETDATE()) AS date) = :selectedDate";
 
     const query = `
       WITH LatestPatientDetails AS (

@@ -22,7 +22,7 @@ exports.createEyeClinicData = async (req, res) => {
     const result = await ClinicalExamination.create(data);
     if (data?.OPRefNo) {
       await NewOpReg.update(
-        { ToBeSeen: "Y", RegDate: new Date().toISOString().slice(0, 10) },
+        { ToBeSeen: "Y" },
         { where: { OPRefNo: data.OPRefNo } }
       );
     }
@@ -86,7 +86,7 @@ exports.updateEyeClinicData = async (req, res) => {
     await data.update(updatedData);
     if (data.OPRefNo) {
       await NewOpReg.update(
-        { ToBeSeen: "Y", RegDate: new Date().toISOString().slice(0, 10) },
+        { ToBeSeen: "Y" },
         { where: { OPRefNo: data.OPRefNo } }
       );
     }
