@@ -89,6 +89,14 @@ module.exports = (sequelize) => {
     SP_ProcedureName: DataTypes.STRING,
     SP_ProcedureEye: DataTypes.STRING,
     SP_ProcedureParams: DataTypes.TEXT,
+    PR_Eye: DataTypes.STRING,
+    PR_Medicine: DataTypes.STRING,
+    PR_Form: DataTypes.STRING,
+    PR_FromDate: DataTypes.STRING,
+    PR_ToDate: DataTypes.STRING,
+    PR_Frequency: DataTypes.STRING,
+    PR_Duration: DataTypes.STRING,
+    PR_Remarks: DataTypes.TEXT,
 
     // ===== FOLLOW UP =====
     FollowUpNotes: DataTypes.TEXT,
