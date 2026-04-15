@@ -17,15 +17,50 @@ const normalizePhotoPath = (value) => {
   const normalized = toNull(value);
   if (normalized === null) return null;
 
-  if (typeof normalized === "string") {
-    return normalized.trim() || null;
+  if (Buffer.isBuffer(normalized)) {
+    return normalized.length ? normalized : null;
   }
 
-  try {
-    return JSON.stringify(normalized);
-  } catch (_error) {
-    return null;
+  if (typeof normalized === "string") {
+    const trimmed = normalized.trim();
+    if (!trimmed) return null;
+
+    if (trimmed.startsWith("[") || trimmed.startsWith("{")) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return normalizePhotoPath(parsed[0]?.content ?? parsed[0]);
+        }
+        if (parsed && typeof parsed === "object") {
+          return normalizePhotoPath(parsed.content ?? null);
+        }
+      } catch (_error) {
+        return null;
+      }
+      return null;
+    }
+
+    const base64Value = trimmed.includes(",")
+      ? trimmed.split(",").pop()
+      : trimmed;
+
+    try {
+      const photoBuffer = Buffer.from(base64Value, "base64");
+      return photoBuffer.length ? photoBuffer : null;
+    } catch (_error) {
+      return null;
+    }
   }
+
+  if (Array.isArray(normalized) && normalized.length > 0) {
+    return normalizePhotoPath(normalized[0]?.content ?? normalized[0]);
+  }
+
+  if (typeof normalized === "object") {
+    return normalizePhotoPath(normalized.content ?? null);
+  }
+
+  return null;
 };
 
 const getAgeFromDob = (dob) => {
@@ -76,13 +111,10 @@ const normalizePayload = (body = {}, { useNullDefaults = false } = {}) => {
 
   return {
     MRIId: mapValue(pickValue(body, "MRIId", "mriId"), toNull),
-    TokenNo: mapValue(pickValue(body, "TokenNo", "tokenNo"), toNull),
     UHId: mapValue(pickValue(body, "UHId", "uhId") ?? pickValue(body, "uhid"), toInteger),
     RegDate: mapValue(pickValue(body, "RegDate", "regDate"), toNull),
     PatientName: mapValue(pickValue(body, "PatientName", "patientName"), toNull),
     CareOf: mapValue(pickValue(body, "CareOf", "careOf"), toNull),
-    Relationship: mapValue(pickValue(body, "Relationship", "relationship"), toNull),
-    Religion: mapValue(pickValue(body, "Religion", "religion"), toNull),
     Age: age ?? (dob ? getAgeFromDob(dob) : useNullDefaults ? null : undefined),
     Gender: mapValue(pickValue(body, "Gender", "gender"), toNull),
     PatientType: mapValue(pickValue(body, "PatientType", "patientType"), toNull),
@@ -96,12 +128,6 @@ const normalizePayload = (body = {}, { useNullDefaults = false } = {}) => {
     Company: mapValue(pickValue(body, "Company", "company"), toNull),
     Pincode: mapValue(pickValue(body, "Pincode", "pincode"), toNull),
     Phone: mapValue(pickValue(body, "Phone", "phone"), toNull),
-    DepartmentId: mapValue(pickValue(body, "DepartmentId", "departmentId"), toInteger),
-    DesignationId: mapValue(pickValue(body, "DesignationId", "designationId"), toInteger),
-    ConsultationCodeId: mapValue(
-      pickValue(body, "ConsultationCodeId", "consultationCodeId"),
-      toInteger
-    ),
     PhotoPath: mapValue(pickValue(body, "PhotoPath", "photoPath"), normalizePhotoPath),
   };
 };
@@ -111,9 +137,20 @@ const removeUndefinedValues = (payload) =>
     Object.entries(payload).filter(([, value]) => value !== undefined)
   );
 
+const normalizePatientDetailsPayload = (body = {}, options = {}) => {
+  const payload = normalizePayload(body, options);
+  const sanitized = options.useNullDefaults ? payload : removeUndefinedValues(payload);
+
+  if (sanitized.PhotoPath === null) {
+    delete sanitized.PhotoPath;
+  }
+
+  return sanitized;
+};
+
 exports.create = async (req, res) => {
   try {
-    const payload = normalizePayload(req.body, { useNullDefaults: true });
+    const payload = normalizePatientDetailsPayload(req.body, { useNullDefaults: true });
 
     if (!payload.UHId) {
       return res.status(400).json({ message: "UHId is required" });
@@ -129,10 +166,10 @@ exports.create = async (req, res) => {
     });
 
     if (existing) {
-      await existing.update(payload);
-      return res
-        .status(200)
-        .json({ message: "Patient details updated", data: existing });
+      return res.status(409).json({
+        message: `UHId ${payload.UHId} already exists for patient ${existing.PatientName}. Duplicate patient details are not allowed.`,
+        data: existing,
+      });
     }
 
     const data = await PatientDetails.create(payload);
@@ -201,7 +238,7 @@ exports.update = async (req, res) => {
       return res.status(404).json({ message: "Patient details not found" });
     }
 
-    const payload = removeUndefinedValues(normalizePayload(req.body));
+    const payload = normalizePatientDetailsPayload(req.body);
 
     if (!Object.keys(payload).length) {
       return res.status(400).json({ message: "No valid fields provided for update" });

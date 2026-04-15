@@ -16,11 +16,6 @@ const PatientDetails = sequelize.define(
       allowNull: true,
       field: "MRIId",
     },
-    TokenNo: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-      field: "TokenNo",
-    },
     UHId: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -40,16 +35,6 @@ const PatientDetails = sequelize.define(
       type: DataTypes.STRING(200),
       allowNull: true,
       field: "CareOf",
-    },
-    Relationship: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-      field: "Relationship",
-    },
-    Religion: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
-      field: "Religion",
     },
     Age: {
       type: DataTypes.INTEGER,
@@ -116,23 +101,8 @@ const PatientDetails = sequelize.define(
       allowNull: true,
       field: "Phone",
     },
-    DepartmentId: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      field: "DepartmentId",
-    },
-    DesignationId: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      field: "DesignationId",
-    },
-    ConsultationCodeId: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      field: "ConsultationCodeId",
-    },
     PhotoPath: {
-      type: DataTypes.TEXT,
+      type: DataTypes.BLOB("long"),
       allowNull: true,
       field: "PhotoPath",
     },

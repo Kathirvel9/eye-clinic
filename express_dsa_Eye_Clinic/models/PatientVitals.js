@@ -16,6 +16,11 @@ const PatientVitals = sequelize.define(
       allowNull: false,
       field: "UHId",
     },
+    PatientId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      field: "PatientId",
+    },
     BP: {
       type: DataTypes.STRING(50),
       allowNull: true,

@@ -12,6 +12,7 @@ const DesignationMaster = require("./models/DesignationMaster");
 const DiagnosisMaster = require("./models/DiagnosisMaster");
 const PatientDetails = require("./models/PatientDetails");
 const PatientVitals = require("./models/PatientVitals");
+const ConsultationFee = require("./models/ConsultationFee");
 const NewOpReg = require("./models/NewOpReg");
 
 const authRoutes = require("./routes/authRoutes");
@@ -27,6 +28,7 @@ const designationMasterRoutes = require("./routes/DesignationMasterRoutes");
 const diagnosisMasterRoutes = require("./routes/DiagnosisMasterRoutes");
 const patientDetailsRoutes = require("./routes/PatientDetailsRoutes");
 const patientVitalsRoutes = require("./routes/PatientVitalsRoutes");
+const consultationFeeRoutes = require("./routes/ConsultationFeeRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -42,6 +44,7 @@ const modelsToSync = [
   ["DiagnosisMaster", DiagnosisMaster],
   ["PatientDetails", PatientDetails],
   ["PatientVitals", PatientVitals],
+  ["ConsultationFee", ConsultationFee],
   ["NewOpReg", NewOpReg],
 ];
 
@@ -99,8 +102,8 @@ process.on("SIGINT", () => {
 });
 
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "15mb" }));
+app.use(express.urlencoded({ extended: true, limit: "15mb" }));
 
 // ✅ ROUTES
 app.use("/api/auth", authRoutes);
@@ -116,6 +119,7 @@ app.use("/api/master/designation", designationMasterRoutes);
 app.use("/api/master/diagnosis", diagnosisMasterRoutes);
 app.use("/api/patient-details", patientDetailsRoutes);
 app.use("/api/patient-vitals", patientVitalsRoutes);
+app.use("/api/consultation-fee", consultationFeeRoutes);
 
 
 // TEST ROUTES
